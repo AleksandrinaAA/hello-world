@@ -1,0 +1,79 @@
+from control.matlab import *
+from numpy import *
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import *
+from fractions import Fraction
+
+"""Передаточная функция"""
+W1=tf([1.],[1.])
+W2=tf([1.],[10.,1.])
+W3=tf([2e-2, 1.],[5e-1,1.])
+W4=tf([20.],[5.,1.])
+Ww=(W2*W3*W4)/(1+W1*W2*W3*W4)
+print (Ww)
+
+y,x=step(Ww)
+plt.figure()
+plt.plot(x,y,"r")
+plt.title('Переходная функция') 
+plt.ylabel('Amplitude')
+plt.xlabel('Time')
+plt.grid(True)
+plt.show()
+
+"""Анализ полюсов ф-ции"""
+Pol=pole(Ww)   
+print("Полюса: \n %s"%Pol)
+
+k=0
+for i in range(len(Pol)):
+    if Pol[i].real>0:
+        k=k+1
+    i=i+1
+if k==0:
+    print('Система устойчива по критерию Михайлова, т.к. все корни у-ния левые')
+          
+else:
+    print('Система не устойчива, т.к. не все корни у-ния левые')      
+
+"""Критерий Найквиста"""
+Ww2=W1*W2*W3*W4
+real, imag, freq = nyquist(Ww2)
+plt.plot()
+plt.title('Диаграмма Найквиста')
+plt.ylabel('+j')
+plt.xlabel('+1')
+plt.grid(True)
+plt.show()
+
+"""Годограф Михайлова"""
+D=Ww.den
+D1=D[0]
+D2=D1[0]
+print("Коэфф-нты характерист у-ния: \n %s"%D2)
+n = len(D2)
+print("Количество элементов: \n %s"%n)
+w = symbols('w',real=True)
+result = 0
+for i in range(n):
+    Z = D2[i]*(I*w)**(n-1)
+    result += Z
+    n -= 1
+print("Характеристический многочлен замкнутой системы: \n %s"%result)
+Real=re(result)
+Im=im(result)
+print("Действительная часть Re: \n %s"%Real)
+print("Мнимая часть Im: \n %s"%Im)
+x=[Real.subs({w:q}) for q in arange(0,1,0.01)]
+y=[Im.subs({w:q}) for q in arange(0,1,0.01)]
+plt.title('Годограф Михайлова') 
+plt.plot(x,y)
+plt.grid(True)
+plt.show()
+
+"""АЧХ и ЛФЧХ"""
+mag, phase, omega = bode(Ww, dB=False)
+plt.title('АЧХ и ЛФЧХ') 
+plt.plot()
+plt.show()
